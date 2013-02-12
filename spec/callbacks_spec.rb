@@ -136,4 +136,48 @@ describe 'attribute_callbacks plugin' do
       model.first.colors.should == ['red']
     end
   end
+
+  describe 'after_<attribute>_add callbacks' do
+    it "are called when an instance is being modified" do
+      i = model.create colors: ['red']
+      i.should_receive(:after_colors_add).with('blue')
+      i.colors << 'blue'
+      i.save.should be
+      model.first.colors.should == ['red', 'blue']
+    end
+
+    it "are called when an instance is being created" do
+      model.any_instance.should_receive(:after_colors_add).with('red')
+      model.any_instance.should_receive(:after_colors_add).with('blue')
+      i = model.create colors: ['red', 'blue']
+    end
+
+    it "cancel the change if an exception is thrown" do
+      i = model.create colors: ['red']
+      i.should_receive(:after_colors_add).with('blue').and_raise Exception
+      i.colors << 'blue'
+      expect { i.save }.to raise_error
+      
+      model.first.colors.should == ['red']
+    end
+  end
+  
+  describe 'after_<attribute>_remove callbacks' do
+    it "are called when an instance is being modified" do
+      i = model.create colors: ['red']
+      i.should_receive(:after_colors_remove).with('red')
+      i.colors -= ['red']
+      i.save.should be
+      model.first.colors.should == []
+    end
+    
+    it "cancel the change if an exception is thrown" do
+      i = model.create colors: ['red']
+      i.should_receive(:after_colors_remove).with('red').and_raise Exception
+      i.colors -= ['red']
+      expect { i.save }.to raise_error
+      
+      model.first.colors.should == ['red']
+    end
+  end
 end
