@@ -1,6 +1,12 @@
 # Sequel::AttributeCallbacks
 
-TODO: Write a gem description
+This plugin for Sequel::Record allows to easily hook in callbacks watching 
+specific model attribute changes. The hooks are defined with conventionally 
+named instance methods for maximum DRYness.
+
+There's special support for callbacks involving array fields (as in Postgres 
+array types with :pg_array extension), so that they can be used similarly to 
+associations, with add and remove callbacks.
 
 ## Installation
 
@@ -16,9 +22,46 @@ Or install it yourself as:
 
     $ gem install sequel-attribute_callbacks
 
-## Usage
+## Synopsis
 
-TODO: Write usage instructions here
+```ruby
+class Person < Sequel::Model
+  plugin :attribute_callbacks
+  
+  def before_name_change old, new_name
+    return true unless Dictionary.is_offensive? new_name
+  end
+  
+  def after_name_change old, new
+    NameChangeRecord.create self.id, old, new
+  end
+end
+```
+
+Special support for arrays (with pg_array plugin):
+
+```ruby
+# widgets table has (colors text[]) column
+class Widget < Sequel::Model
+  plugin :attribute_callbacks
+  
+  def before_colors_add color
+    return false unless Paint.color_vailable? color
+  end
+  
+  def after_colors_add color
+    Paint.order color
+  end
+  
+  def before_colors_remove color
+    # this is our company color, we need it!
+    return true unless color == 'fuchsia'
+  end
+  
+  def after_colors_remove color
+    Paint.reduce_consumption color
+  end
+end
 
 ## Contributing
 
