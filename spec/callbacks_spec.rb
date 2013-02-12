@@ -117,4 +117,23 @@ describe 'attribute_callbacks plugin' do
       model.first.colors.should == ['red']
     end
   end
+  
+  describe 'before_<attribute>_remove callbacks' do
+    it "are called when an instance is being modified" do
+      i = model.create colors: ['red']
+      i.should_receive(:before_colors_remove).with('red').and_return true
+      i.colors -= ['red']
+      i.save.should be
+      model.first.colors.should == []
+    end
+    
+    it "cancel the change if false is returned" do
+      i = model.create colors: ['red']
+      i.should_receive(:before_colors_remove).with('red').and_return false
+      i.colors -= ['red']
+      expect { i.save }.to raise_error(Sequel::HookFailed)
+      
+      model.first.colors.should == ['red']
+    end
+  end
 end
