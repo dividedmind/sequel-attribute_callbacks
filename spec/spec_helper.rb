@@ -11,5 +11,5 @@ shared_context 'database' do
     """
   }
   
-  before { clean_database }
+  before(:all) { clean_database }
 end

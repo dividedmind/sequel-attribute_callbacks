@@ -3,11 +3,15 @@ require 'spec_helper'
 describe 'attribute_callbacks plugin' do
   include_context 'database'
   
-  before do
+  before :all do
     db.create_table :widgets do
       primary_key :id
       String :name
     end
+  end
+  
+  before do
+    db.execute "TRUNCATE TABLE widgets"
   end
   
   let(:model) { Sequel::Model(:widgets) }
