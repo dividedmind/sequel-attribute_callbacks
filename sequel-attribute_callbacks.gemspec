@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["divided.mind@gmail.com"]
   gem.description   = %q{Model plugin making it easy to define callbacks on modification of specific attributes in the database}
   gem.summary       = %q{Attribute modification callbacks}
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/dividedmind/sequel-attribute_callbacks"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
