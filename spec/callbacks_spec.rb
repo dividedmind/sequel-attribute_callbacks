@@ -31,6 +31,11 @@ describe 'attribute_callbacks plugin' do
       i.save
     end
     
+    it "are called when an instance is being created" do
+      model.any_instance.should_receive(:name_changed).with(nil, 'foo')
+      i = model.create name: "foo"
+    end
+
     it "rolls back the change if an exception is thrown" do
       i = model.create name: "foo"
       i.should_receive(:name_changed).with("foo", "bar").and_raise Exception
