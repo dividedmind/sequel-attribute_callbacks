@@ -45,11 +45,31 @@ module Sequel::Plugins
 
       def call_before_attribute_hook column, change
         method = "before_#{column}_change".to_sym
-        if respond_to? method
+        
+        scalar = if respond_to? method
           send method, *change
         else
           true
         end
+        
+        return false unless scalar
+        
+        if change.all?{|x| x.respond_to? :to_a}
+          call_before_array_hooks column, *change
+        else
+          true
+        end
+      end
+      
+      def call_before_array_hooks column, before, after
+        add_hook = "before_#{column}_add".to_sym
+        rm_hook = "before_#{column}_remove".to_sym
+        before = before.to_a
+        after = after.to_a
+        
+        return false unless (after - before).all? {|x| send add_hook, x} if respond_to? add_hook
+        return false unless (before - after).all? {|x| send rm_hook, x} if respond_to? rm_hook
+        return true
       end
     end
   end
