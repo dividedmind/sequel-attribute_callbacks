@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Sequel::Plugins::AttributeCallbacks do
+describe 'attribute_callbacks plugin' do
   include_context 'database'
   
   before do
@@ -21,5 +21,23 @@ describe Sequel::Plugins::AttributeCallbacks do
   
   it "doesn't interfere with record creation" do
     model.create
+  end
+
+  describe '<attribute>_changed callbacks' do
+    it "are called when an instance is being modified" do
+      i = model.create
+      i.should_receive(:name_changed).with(nil, 'foo')
+      i.name = 'foo'
+      i.save
+    end
+    
+    it "rolls back the change if an exception is thrown" do
+      i = model.create name: "foo"
+      i.should_receive(:name_changed).with("foo", "bar").and_raise Exception
+      i.name = 'bar'
+      expect { i.save }.to raise_error
+      
+      model.first.name.should == "foo"
+    end
   end
 end
