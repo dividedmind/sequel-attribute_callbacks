@@ -5,8 +5,10 @@ module Sequel::Plugins
     def self.apply model
       model.plugin :dirty
       
-      # require it here to make sure the pg_array extension has been loaded
-      require 'sequel/plugins/attribute_callbacks/pg_array_fixes'
+      if defined? ::Sequel::Postgres::PGArray
+        require 'sequel/plugins/attribute_callbacks/pg_array_fixes'
+        model.include PgArrayFixes::AttributeCallbacks
+      end
     end
     
     module InstanceMethods
@@ -41,6 +43,7 @@ module Sequel::Plugins
       end
       
       private
+      
       def call_after_attribute_hook column, change
         method = "after_#{column}_change".to_sym
         send method, *change if respond_to? method
