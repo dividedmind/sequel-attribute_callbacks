@@ -62,6 +62,7 @@ class Widget < Sequel::Model
     Paint.reduce_consumption color
   end
 end
+```
 
 ## Contributing
 
