@@ -4,6 +4,9 @@ module Sequel::Plugins
   module AttributeCallbacks
     def self.apply model
       model.plugin :dirty
+      
+      # require it here to make sure the pg_array extension has been loaded
+      require 'sequel/plugins/attribute_callbacks/pg_array_fixes'
     end
     
     module InstanceMethods

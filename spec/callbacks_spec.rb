@@ -80,7 +80,8 @@ describe 'attribute_callbacks plugin' do
     it "are called when an instance is being modified" do
       i = model.create colors: ['red']
       i.should_receive(:before_colors_add).with('blue').and_return true
-      i.colors += ['blue']
+      i.will_change_column :colors
+      i.colors << 'blue'
       i.save.should be
       model.first.colors.should == ['red', 'blue']
     end
