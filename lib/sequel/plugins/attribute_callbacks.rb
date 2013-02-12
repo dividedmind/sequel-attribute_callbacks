@@ -11,7 +11,7 @@ module Sequel::Plugins
         super
         
         (previous_changes || []).each do |column, change|
-          call_attribute_hook column, change
+          call_after_attribute_hook column, change
         end
       end
 
@@ -20,13 +20,13 @@ module Sequel::Plugins
 
         columns.each do |column|
           value = send column
-          call_attribute_hook column, [nil, value] if column
+          call_after_attribute_hook column, [nil, value] if value
         end
       end
       
       private
-      def call_attribute_hook column, change
-        method = "#{column}_changed".to_sym
+      def call_after_attribute_hook column, change
+        method = "after_#{column}_change".to_sym
         send method, *change if respond_to? method
       end
     end
