@@ -47,7 +47,7 @@ class Widget < Sequel::Model
   plugin :attribute_callbacks
   
   def before_colors_add color
-    return false unless Paint.color_vailable? color
+    return false unless Paint.color_available? color
   end
   
   def after_colors_add color
