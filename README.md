@@ -25,6 +25,7 @@ Or install it yourself as:
 ## Synopsis
 
 ```ruby
+# people table has (name text) column
 class Person < Sequel::Model
   plugin :attribute_callbacks
   
