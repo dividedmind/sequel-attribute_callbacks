@@ -36,11 +36,35 @@ describe 'attribute_callbacks plugin' do
       i = model.create name: "foo"
     end
 
-    it "rolls back the change if an exception is thrown" do
+    it "roll back the change if an exception is thrown" do
       i = model.create name: "foo"
       i.should_receive(:after_name_change).with("foo", "bar").and_raise Exception
       i.name = 'bar'
       expect { i.save }.to raise_error
+      
+      model.first.name.should == "foo"
+    end
+  end
+
+  describe 'before_<attribute>_change callbacks' do
+    it "are called when an instance is being modified" do
+      i = model.create
+      i.should_receive(:before_name_change).with(nil, 'foo').and_return true
+      i.name = 'foo'
+      i.save.should be
+      model.first.name.should == "foo"
+    end
+    
+    it "are called when an instance is being created" do
+      model.any_instance.should_receive(:before_name_change).with(nil, 'foo').and_return true
+      i = model.create name: "foo"
+    end
+
+    it "roll back the change if false is returned" do
+      i = model.create name: "foo"
+      i.should_receive(:before_name_change).with("foo", "bar").and_return false
+      i.name = 'bar'
+      expect { i.save }.to raise_error(Sequel::HookFailed)
       
       model.first.name.should == "foo"
     end
