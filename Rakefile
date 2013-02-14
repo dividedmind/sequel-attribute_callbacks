@@ -3,3 +3,6 @@ require 'rspec/core/rake_task'
 
 RSpec::Core::RakeTask.new(:spec)
 task default: :spec
+
+# Don't release bad code
+task release: :spec
