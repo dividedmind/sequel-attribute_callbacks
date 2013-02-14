@@ -4,16 +4,19 @@ describe 'attribute_callbacks plugin' do
   include_context 'database'
   
   before :all do
+    db.execute "CREATE EXTENSION IF NOT EXISTS hstore"
     db.create_table :widgets do
       primary_key :id
       String :name
       column :colors, 'text[]'
+      column :store, :hstore
     end
   end
   
   before do
     db.execute "TRUNCATE TABLE widgets"
     db.extension:pg_array
+    db.extension:pg_hstore
   end
   
   let(:model) { Sequel::Model(:widgets) }
@@ -77,31 +80,60 @@ describe 'attribute_callbacks plugin' do
   end
   
   describe 'before_<attribute>_add callbacks' do
-    it "are called when an instance is being modified" do
-      i = model.create colors: ['red']
-      i.should_receive(:before_colors_add).with('blue').and_return true
-      i.colors += ['blue']
-      i.save.should be
-      model.first.colors.should == ['red', 'blue']
+    context "with an array" do
+      it "are called when an instance is being modified" do
+        i = model.create colors: ['red']
+        i.should_receive(:before_colors_add).with('blue').and_return true
+        i.colors += ['blue']
+        i.save.should be
+        model.first.colors.should == ['red', 'blue']
+      end
+      
+      it "work with in place modification" do
+        i = model.create colors: ['red']
+        i.should_receive(:before_colors_add).with('blue').and_return true
+        i.will_change_column :colors
+        i.colors << 'blue'
+        i.save.should be
+        model.first.colors.should == ['red', 'blue']
+      end
+      
+      it "work with in place modification without will_change_column" do
+        i = model.create colors: ['red']
+        i.should_receive(:before_colors_add).with('blue').and_return true
+        i.colors << 'blue'
+        i.save.should be
+        model.first.colors.should == ['red', 'blue']
+      end
     end
     
-    it "work with in place modification" do
-      i = model.create colors: ['red']
-      i.should_receive(:before_colors_add).with('blue').and_return true
-      i.will_change_column :colors
-      i.colors << 'blue'
-      i.save.should be
-      model.first.colors.should == ['red', 'blue']
+    context "with an hstore" do
+      it "are called when an instance is being modified" do
+        i = model.create store: {a: 5}
+        i.should_receive(:before_store_add).with('b', '6').and_return true
+        i.store = i.store.merge b: 6
+        i.save.should be
+        model.first.store.should == {'a' => '5', 'b' => '6'}
+      end
+      
+      it "work with in place modification" do
+        i = model.create store: {a: 5}
+        i.should_receive(:before_store_add).with('b', '6').and_return true
+        i.will_change_column :store
+        i.store[:b] = 6
+        i.save.should be
+        model.first.store.should == {'a' => '5', 'b' => '6'}
+      end
+      
+      it "work with in place modification without will_change_column" do
+        i = model.create store: {a: 5}
+        i.should_receive(:before_store_add).with('b', '6').and_return true
+        i.store[:b] = 6
+        i.save.should be
+        model.first.store.should == {'a' => '5', 'b' => '6'}
+      end
     end
-    
-    it "work with in place modification without will_change_column" do
-      i = model.create colors: ['red']
-      i.should_receive(:before_colors_add).with('blue').and_return true
-      i.colors << 'blue'
-      i.save.should be
-      model.first.colors.should == ['red', 'blue']
-    end
-    
+      
     it "are called when an instance is being created" do
       model.any_instance.should_receive(:before_colors_add).with('red').and_return true
       model.any_instance.should_receive(:before_colors_add).with('blue').and_return true
@@ -119,6 +151,14 @@ describe 'attribute_callbacks plugin' do
   end
   
   describe 'before_<attribute>_remove callbacks' do
+    it "work with hstore" do
+      i = model.create store: {a: 5}
+      i.should_receive(:before_store_remove).with('a', '5').and_return true
+      i.store = {}
+      i.save.should be
+      model.first.store.should == {}
+    end
+
     it "are called when an instance is being modified" do
       i = model.create colors: ['red']
       i.should_receive(:before_colors_remove).with('red').and_return true
@@ -138,6 +178,14 @@ describe 'attribute_callbacks plugin' do
   end
 
   describe 'after_<attribute>_add callbacks' do
+    it "work with hstore" do
+      i = model.create store: {a: 5}
+      i.should_receive(:after_store_add).with('b', '6').and_return true
+      i.store = i.store.merge b: 6
+      i.save.should be
+      model.first.store.should == {'a' => '5', 'b' => '6'}
+    end
+      
     it "are called when an instance is being modified" do
       i = model.create colors: ['red']
       i.should_receive(:after_colors_add).with('blue')
@@ -163,6 +211,14 @@ describe 'attribute_callbacks plugin' do
   end
   
   describe 'after_<attribute>_remove callbacks' do
+    it "work with hstore" do
+      i = model.create store: {a: 5}
+      i.should_receive(:after_store_remove).with('a', '5').and_return true
+      i.store = {}
+      i.save.should be
+      model.first.store.should == {}
+    end
+    
     it "are called when an instance is being modified" do
       i = model.create colors: ['red']
       i.should_receive(:after_colors_remove).with('red')
@@ -179,5 +235,14 @@ describe 'attribute_callbacks plugin' do
       
       model.first.colors.should == ['red']
     end
+  end
+  
+  it "reports store changes as remove then add" do
+    i = model.create store: {a: 5}
+    i.should_receive(:before_store_remove).with('a', '5').and_return true
+    i.should_receive(:before_store_add).with('a', '6').and_return true
+    i.store[:a] = 6
+    i.save.should be
+    model.first.store.should == {'a' => '6'}
   end
 end
