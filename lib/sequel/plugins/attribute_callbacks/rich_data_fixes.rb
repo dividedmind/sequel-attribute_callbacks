@@ -26,7 +26,7 @@ module Sequel::Plugins::AttributeCallbacks
       # those are often going to be modified in place
       def clone_rich_attributes
         values.each do |name, value|
-          if value.kind_of? Sequel::Postgres::PGArray
+          if value.kind_of?(Sequel::Postgres::PGArray) || value.kind_of?(Sequel::Postgres::HStore)
             initial_values[name] = value.clone
           end
         end
@@ -36,3 +36,4 @@ module Sequel::Plugins::AttributeCallbacks
 end
 
 Sequel::Postgres::PGArray.send :include, Sequel::Plugins::AttributeCallbacks::DelegatorDeepClone if defined? Sequel::Postgres::PGArray
+Sequel::Postgres::HStore.send :include, Sequel::Plugins::AttributeCallbacks::DelegatorDeepClone if defined? Sequel::Postgres::HStore
