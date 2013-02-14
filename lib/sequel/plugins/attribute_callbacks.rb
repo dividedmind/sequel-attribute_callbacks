@@ -74,8 +74,8 @@ module Sequel::Plugins
         before = before.to_a
         after = after.to_a
         
-        return false unless (after - before).all? {|x| send add_hook, x} if respond_to? add_hook
-        return false unless (before - after).all? {|x| send rm_hook, x} if respond_to? rm_hook
+        return false unless (after - before).all? {|x| send add_hook, *x} if respond_to? add_hook
+        return false unless (before - after).all? {|x| send rm_hook, *x} if respond_to? rm_hook
         return true
       end
 
@@ -85,8 +85,8 @@ module Sequel::Plugins
         before = before.to_a
         after = after.to_a
         
-        (after - before).each {|x| send add_hook, x} if respond_to? add_hook
-        (before - after).each {|x| send rm_hook, x} if respond_to? rm_hook
+        (after - before).each {|x| send add_hook, *x} if respond_to? add_hook
+        (before - after).each {|x| send rm_hook, *x} if respond_to? rm_hook
       end
     end
   end
