@@ -5,9 +5,9 @@ module Sequel::Plugins
     def self.apply model
       model.plugin :dirty
       
-      if defined? ::Sequel::Postgres::PGArray
-        require 'sequel/plugins/attribute_callbacks/pg_array_fixes'
-        model.include PgArrayFixes::AttributeCallbacks
+      if defined? ::Sequel::Postgres::PGArray || defined? ::Sequel::Postgres::HStore
+        require 'sequel/plugins/attribute_callbacks/rich_data_fixes'
+        model.plugin RichDataCloner
       end
     end
     
