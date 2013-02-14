@@ -5,8 +5,8 @@ specific model attribute changes. The hooks are defined with conventionally
 named instance methods for maximum DRYness.
 
 There's special support for callbacks involving array fields (as in Postgres 
-array types with :pg_array extension), so that they can be used similarly to 
-associations, with add and remove callbacks.
+array types with :pg_array extension) and hashes (HStore), so that they can 
+be used similarly to associations, with add and remove callbacks.
 
 ## Installation
 
@@ -39,7 +39,7 @@ class Person < Sequel::Model
 end
 ```
 
-Special support for arrays (with pg_array plugin):
+Special support for arrays (with pg_array extension):
 
 ```ruby
 # widgets table has (colors text[]) column
@@ -61,6 +61,32 @@ class Widget < Sequel::Model
   
   def after_colors_remove color
     Paint.reduce_consumption color
+  end
+end
+```
+
+Special support for hashes (with pg_hstore extension):
+
+```ruby
+# robots table has (parts hstore) column
+class Robot < Sequel::Model
+  plugin :attribute_callbacks
+  
+  def before_parts_add place, part
+    return false unless Part[part].fits_in? place
+  end
+  
+  def after_parts_add place, part
+    Part.order part
+  end
+  
+  def before_parts_remove place, part
+    # if you want a different skeleton go make a new robot
+    return true unless place == 'skeleton'
+  end
+  
+  def after_parts_remove place, part
+    Part.reduce_consumption part
   end
 end
 ```
