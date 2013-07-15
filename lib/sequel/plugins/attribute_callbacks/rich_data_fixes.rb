@@ -11,7 +11,7 @@ module Sequel::Plugins::AttributeCallbacks
 
   module RichDataCloner
     module InstanceMethods
-      def after_initialize
+      def initialize h = {}
         super
         clone_rich_attributes
       end
