@@ -11,6 +11,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Model plugin making it easy to define callbacks on modification of specific attributes in the database}
   gem.summary       = %q{Attribute modification callbacks}
   gem.homepage      = "https://github.com/dividedmind/sequel-attribute_callbacks"
+  gem.license       = 'MIT'
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
