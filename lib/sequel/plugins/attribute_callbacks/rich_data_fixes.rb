@@ -10,8 +10,12 @@ module Sequel::Plugins::AttributeCallbacks
   end
 
   module RichDataCloner
+    def self.apply model
+      model.plugin :after_initialize
+    end
+
     module InstanceMethods
-      def initialize h = {}
+      def after_initialize
         super
         clone_rich_attributes
       end

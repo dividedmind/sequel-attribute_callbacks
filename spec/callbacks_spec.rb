@@ -88,7 +88,30 @@ describe 'attribute_callbacks plugin' do
         i.save.should be
         model.first.colors.should == ['red', 'blue']
       end
-      
+
+      describe "and an initializer" do
+        let(:model) do
+          class Widget < Sequel::Model
+            plugin :attribute_callbacks
+            def initialize _ = {}
+              super _
+
+              self.colors ||= [].pg_array
+            end
+          end
+          Widget
+        end
+
+        it "works too" do
+          i = model.create colors: ['red']
+          i = model.first
+          i.should_receive(:before_colors_add).with('blue').and_return true
+          i.colors << 'blue'
+          i.save.should be
+          model.first.colors.should == ['red', 'blue']
+        end
+      end
+
       it "work with in place modification" do
         i = model.create colors: ['red']
         i.should_receive(:before_colors_add).with('blue').and_return true
