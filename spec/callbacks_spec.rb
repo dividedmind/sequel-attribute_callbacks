@@ -4,8 +4,8 @@ describe 'attribute_callbacks plugin' do
   include_context 'database'
   
   before :all do
-    db.execute "CREATE EXTENSION IF NOT EXISTS hstore"
-    db.create_table :widgets do
+    @db.execute "CREATE EXTENSION IF NOT EXISTS hstore"
+    @db.create_table :widgets do
       primary_key :id
       String :name
       column :colors, 'text[]'

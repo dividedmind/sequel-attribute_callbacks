@@ -1,15 +1,16 @@
 require 'sequel-attribute_callbacks'
 
 shared_context 'database' do
-  let(:dburl) { ENV['TEST_DATABASE_URL'] || 'postgres:///sequel-attribute_callbacks_test' }
-  let(:db) { Sequel::connect dburl }
+  dburl = ENV['TEST_DATABASE_URL'] || 'postgres:///sequel-attribute_callbacks_test'
+  before(:all) { @db = Sequel::connect dburl }
+  let(:db) { @db }
   
-  let(:clean_database) {
-    db.execute """
+  def clean_database
+    @db.execute """
       DROP SCHEMA public CASCADE;
       CREATE SCHEMA public;
     """
-  }
+  end
   
   before(:all) { clean_database }
 end
